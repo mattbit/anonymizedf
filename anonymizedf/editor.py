@@ -296,10 +296,22 @@ class EditorAnnotationsPanel(scrolled.ScrolledPanel):
         self.SetupScrolling()
 
     def _setup(self):
+        self.annots_elements = []
+
         sbox = wx.StaticBox(self, label="Annotations")
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         inner_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        if not self.model.annotations:
+            placeholder = wx.StaticText(sbox, label="No annotations present.")
+            inner_sizer.Add(placeholder, 1, wx.ALL, 10)
+            sbox.SetSizerAndFit(inner_sizer)
+            sizer.Add(sbox, 0, wx.EXPAND | wx.ALL, 10)
+            self.SetSizer(sizer)
+            self.Layout()
+            return
+
         grid_sizer = wx.FlexGridSizer(3, 0, 0)
 
         grid_sizer.Add(wx.StaticText(sbox, label="Onset"), 0, wx.RIGHT, 5)
