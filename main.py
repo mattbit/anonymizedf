@@ -1,6 +1,6 @@
 import sys
-from anonymizedf.app import AnonymizerApp
+from anonymizedf import App
 
 if __name__ == "__main__":
-    app = AnonymizerApp(sys.argv[1:])
+    app = App(sys.argv[1:])
     app.MainLoop()

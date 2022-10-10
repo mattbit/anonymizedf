@@ -25,6 +25,8 @@ class EditorFrame(wx.Frame):
 
     def __init__(self, parent, path: Path):
         super().__init__(parent, title=f"{path.name} — AnonymizEDF")
+        icon_path = str(Path(__file__).parent.joinpath("resources", "frame_icon.ico"))
+        self.SetIcon(wx.Icon(icon_path))
         self.parent = parent
         self.input_path = path
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -43,7 +45,7 @@ class EditorFrame(wx.Frame):
                 self,
                 f"The selected file is not EDF(+) compliant.",
                 "Could not open the EDF file",
-                style=wx.ICON_ERROR | wx.OK
+                style=wx.ICON_ERROR | wx.OK,
             )
             dialog.ShowModal()
             self.Close()

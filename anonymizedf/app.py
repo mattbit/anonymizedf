@@ -9,7 +9,7 @@ from .editor import EditorFrame
 APP_VERSION = "v0.0.1β"
 
 
-class AnonymizerApp(wx.App):
+class App(wx.App):
     def __init__(self, filenames=None):
         super().__init__(False)
 
@@ -19,6 +19,8 @@ class AnonymizerApp(wx.App):
 class AppFrame(wx.Frame):
     def __init__(self, parent, title, filenames=None):
         super().__init__(parent, title=title)
+        icon_path = str(Path(__file__).parent.joinpath("resources", "frame_icon.ico"))
+        self.SetIcon(wx.Icon(icon_path))
         self.CreateStatusBar()
 
         self._configure_menu()
