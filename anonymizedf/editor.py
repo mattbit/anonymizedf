@@ -5,7 +5,6 @@ import datetime
 from pathlib import Path
 from functools import partial
 
-from .model import EDFModel
 from .model import EDFModel, InvalidFileError
 
 
@@ -65,24 +64,30 @@ class EditorFrame(wx.Frame):
         # Actions
         action_panel = wx.Panel(self)
         action_sizer = wx.BoxSizer()
+        action_inner = wx.Panel(action_panel)
+        inner_sizer = wx.BoxSizer()
+
         # reset_btn = wx.Button(action_panel, label="Reset all")
-        cancel_btn = wx.Button(action_panel, label="Cancel")
-        save_btn = wx.Button(action_panel, label="Save Anonymized")
+        cancel_btn = wx.Button(action_inner, label="Cancel")
+        save_btn = wx.Button(action_inner, label="Save Anonymized")
 
         # reset_btn.Bind(wx.EVT_BUTTON, self.on_reset)
         cancel_btn.Bind(wx.EVT_BUTTON, self.on_cancel)
         save_btn.Bind(wx.EVT_BUTTON, self.on_save)
 
         # action_sizer.Add(reset_btn, 0, wx.ALL, 5)
-        action_sizer.AddStretchSpacer()
-        action_sizer.Add(cancel_btn, 0, wx.ALL, 5)
-        action_sizer.Add(save_btn, 0, wx.ALL, 5)
+        inner_sizer.AddStretchSpacer()
+        inner_sizer.Add(cancel_btn, 0, wx.ALL, 5)
+        inner_sizer.Add(save_btn, 0, wx.ALL, 5)
+        action_inner.SetSizer(inner_sizer)
+
+        action_sizer.Add(action_inner, 1, wx.EXPAND | wx.ALL, 10)
         action_panel.SetSizer(action_sizer)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(panel, 1, wx.EXPAND | wx.ALL, 0)
         box.Add(wx.StaticLine(self), 0, wx.EXPAND)
-        box.Add(action_panel, 0, wx.EXPAND | wx.ALL, 10)
+        box.Add(action_panel, 0, wx.EXPAND | wx.ALL, 0)
 
         self.SetSizer(box)
 
@@ -328,7 +333,6 @@ class EditorAnnotationsPanel(scrolled.ScrolledPanel):
         tc = wx.TextCtrl(sbox, value="Test")
         default_size = tc.GetSize()
         tc.Destroy()
-        self.annots_elements = []
         for n, (onset, _, annotation) in enumerate(self.model.annotations):
             onset_val = datetime.timedelta(seconds=onset)
             grid_sizer.Add(
