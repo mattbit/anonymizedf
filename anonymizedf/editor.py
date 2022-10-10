@@ -215,7 +215,8 @@ class EditorHeaderPanel(scrolled.ScrolledPanel):
             self.update_field(field["name"])
 
         grid_sizer.AddGrowableCol(1)
-        inner_sizer.Add(grid_sizer, 1, wx.ALL | wx.EXPAND, 10)
+        inner_sizer.AddSpacer(10)
+        inner_sizer.Add(grid_sizer, 0, wx.ALL | wx.EXPAND, 10)
         sbox.SetSizerAndFit(inner_sizer)
 
         sizer.Add(sbox, 0, wx.EXPAND | wx.ALL, 10)
@@ -307,6 +308,7 @@ class EditorAnnotationsPanel(scrolled.ScrolledPanel):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         inner_sizer = wx.BoxSizer(wx.VERTICAL)
+        inner_sizer.AddSpacer(10)
 
         if not self.model.annotations:
             placeholder = wx.StaticText(sbox, label="No annotations present.")
