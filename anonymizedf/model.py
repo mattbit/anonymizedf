@@ -27,20 +27,23 @@ class EDFModel:
     ]
 
     def __init__(self, path):
-        with EdfReader(str(path)) as f:
-            self._header = f.getHeader()
-            self._annots = [annot for annot in zip(*f.readAnnotations())]
-            self._signal_headers = f.getSignalHeaders()
-            self._signals = [
-                f.readSignal(s, digital=True) for s in range(f.signals_in_file)
-            ]
-            edf_file_type = f.filetype
+        try:
+            with EdfReader(str(path)) as f:
+                self._header = f.getHeader()
+                self._annots = [annot for annot in zip(*f.readAnnotations())]
+                self._signal_headers = f.getSignalHeaders()
+                self._signals = [
+                    f.readSignal(s, digital=True) for s in range(f.signals_in_file)
+                ]
+                edf_file_type = f.filetype
 
-            if edf_file_type == pyedflib.FILETYPE_EDF:
-                # This is a legacy EDF file, so we copy the legacy header
-                # fields into the EDF+ “extra” fields.
-                self._header["patient_additional"] = f.patient
-                self._header["recording_additional"] = f.recording
+                if edf_file_type == pyedflib.FILETYPE_EDF:
+                    # This is a legacy EDF file, so we copy the legacy header
+                    # fields into the EDF+ “extra” fields.
+                    self._header["patient_additional"] = f.patient
+                    self._header["recording_additional"] = f.recording
+        except OSError as err:
+            raise InvalidFileError(str(err))
 
     @property
     def header_fields(self):
@@ -62,7 +65,7 @@ class EDFModel:
 
     def _parse_birthdate(self):
         birthdate_str = self._header.get("birthdate")
-        if birthdate_str == '':
+        if birthdate_str == "":
             return None
         return datetime.datetime.strptime(birthdate_str, "%d %b %Y")
 
@@ -91,3 +94,7 @@ class EDFModel:
         header["annotations"] = self.annotations
 
         write_edf(filename, self._signals, self._signal_headers, header, digital=True)
+
+
+class InvalidFileError(IOError):
+    """The EDF file is invalid or malformed."""

@@ -6,6 +6,7 @@ from pathlib import Path
 from functools import partial
 
 from .model import EDFModel
+from .model import EDFModel, InvalidFileError
 
 
 class EditorFrame(wx.Frame):
@@ -29,11 +30,24 @@ class EditorFrame(wx.Frame):
         self.input_path = path
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-        self.model = EDFModel(self.input_path)
+        self._read_edf()
         self._setup()
         self.Layout()
         self.Fit()
         self.header_panel.SetupScrolling()
+
+    def _read_edf(self):
+        try:
+            self.model = EDFModel(self.input_path)
+        except InvalidFileError:
+            dialog = wx.MessageDialog(
+                self,
+                f"The selected file is not EDF(+) compliant.",
+                "Could not open the EDF file",
+                style=wx.ICON_ERROR | wx.OK
+            )
+            dialog.ShowModal()
+            self.Close()
 
     def _setup(self):
         panel = wx.Panel(self)
