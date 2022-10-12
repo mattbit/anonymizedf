@@ -15,6 +15,9 @@ class App(wx.App):
 
         self.app_frame = AppFrame(None, "AnonymizEDF", filenames)
 
+    def InitLocale(self):
+        pass
+
 
 class AppFrame(wx.Frame):
     def __init__(self, parent, title, filenames=None):

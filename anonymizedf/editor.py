@@ -109,9 +109,8 @@ class EditorFrame(wx.Frame):
         self.model.write(filename)
 
     def open_file_save_dialog(self):
-        default_filename = self.input_path.with_stem(
-            self.input_path.stem + "_anonymized"
-        ).name
+        default_filename = self.input_path.stem + "_anonymized.edf"
+        
         dialog = wx.FileDialog(
             self,
             defaultDir=str(self.input_path.parent.absolute()),
@@ -170,32 +169,29 @@ class EditorHeaderPanel(scrolled.ScrolledPanel):
             )
 
             # Editable field content
-            match field["type"]:
-                case "gender":
-                    input_ctrl = GenderCtrl(sbox, value=field["value"])
-                case "date":
-                    if isinstance(field["value"], datetime.date):
-                        date_val = wx.DateTime()
-                        date_val.ParseISOCombined(field["value"].isoformat())
-                    else:
-                        date_val = wx.InvalidDateTime
+            if field["type"] == "gender":
+                input_ctrl = GenderCtrl(sbox, value=field["value"])
+            elif field["type"] == "date":
+                if isinstance(field["value"], datetime.date):
+                    date_val = wx.DateTime()
+                    date_val.ParseISOCombined(field["value"].isoformat())
+                else:
+                    date_val = wx.InvalidDateTime
 
-                    input_ctrl = wx.adv.DatePickerCtrl(
-                        sbox,
-                        dt=date_val,
-                        style=wx.adv.DP_DEFAULT | wx.adv.DP_ALLOWNONE,
-                    )
-                case "datetime":
-                    if isinstance(field["value"], datetime.datetime):
-                        date_val = wx.DateTime()
-                        date_val.ParseISOCombined(field["value"].isoformat())
-                    else:
-                        date_val = wx.InvalidDateTime
-                    input_ctrl = DateTimePickerPanel(sbox, date_val)
-                case _:
-                    input_ctrl = wx.TextCtrl(
-                        sbox, value=field["value"], style=wx.TE_RICH
-                    )
+                input_ctrl = wx.adv.DatePickerCtrl(
+                    sbox,
+                    dt=date_val,
+                    style=wx.adv.DP_DEFAULT | wx.adv.DP_ALLOWNONE,
+                )
+            elif field["type"] == "datetime":
+                if isinstance(field["value"], datetime.datetime):
+                    date_val = wx.DateTime()
+                    date_val.ParseISOCombined(field["value"].isoformat())
+                else:
+                    date_val = wx.InvalidDateTime
+                input_ctrl = DateTimePickerPanel(sbox, date_val)
+            else:
+                input_ctrl = wx.TextCtrl(sbox, value=field["value"], style=wx.TE_RICH)
 
             grid_sizer.Add(input_ctrl, 1, wx.EXPAND | wx.BOTTOM, 5)
 
@@ -234,15 +230,14 @@ class EditorHeaderPanel(scrolled.ScrolledPanel):
         vals = dict()
 
         for field_name, field in self.field_elements.items():
-            match field["type"]:
-                case "date":
-                    v_ = field["input"].GetValue()
-                    field_val = datetime.date.fromisoformat(v_.FormatISODate())
-                case "datetime":
-                    v_ = field["input"].GetValue()
-                    field_val = datetime.datetime.fromisoformat(v_.FormatISOCombined())
-                case _:
-                    field_val = field["input"].GetValue()
+            if field["type"] == "date":
+                v_ = field["input"].GetValue()
+                field_val = datetime.date.fromisoformat(v_.FormatISODate())
+            elif field["type"] == "datetime":
+                v_ = field["input"].GetValue()
+                field_val = datetime.datetime.fromisoformat(v_.FormatISOCombined())
+            else:
+                field_val = field["input"].GetValue()
 
             vals[field_name] = {
                 "value": field_val,
