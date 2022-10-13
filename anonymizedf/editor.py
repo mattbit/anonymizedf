@@ -31,24 +31,75 @@ class EditorFrame(wx.Frame):
         self.input_path = path
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-        self._read_edf()
+    def Open(self):
+        if not self._read_edf():
+            self.Close()
+            return False
+
         self._setup()
         self.Layout()
         self.Fit()
         self.header_panel.SetupScrolling()
+        return True
 
     def _read_edf(self):
         try:
             self.model = EDFModel(self.input_path)
         except InvalidFileError:
-            dialog = wx.MessageDialog(
-                self,
-                f"The selected file is not EDF(+) compliant.",
-                "Could not open the EDF file",
-                style=wx.ICON_ERROR | wx.OK,
+            self._show_invalid_file_dialog()
+            return False
+        return True
+
+    def _show_invalid_file_dialog(self):
+        dialog = wx.RichMessageDialog(
+            None,
+            f"The selected file is not EDF(+) compliant.",
+            "Could not open the EDF file",
+            style=wx.ICON_ERROR | wx.OK,
+        )
+        dialog.ShowCheckBox("Show debug information")
+        dialog.ShowModal()
+        show_debug = dialog.IsCheckBoxChecked()
+        dialog.Destroy()
+
+        if show_debug:
+            with open(self.input_path, "rb") as f:
+                raw_header = f.read(256)
+                raw_sig_header = f.read(256)
+            dialog = wx.Dialog(self, title="Debug information")
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(
+                wx.StaticText(dialog, label="Header dump:"), 0, wx.LEFT | wx.TOP, 5
             )
+            sizer.Add(
+                wx.TextCtrl(
+                    dialog,
+                    value=raw_header.decode("utf8", "backslashreplace"),
+                    style=wx.TE_MULTILINE | wx.TE_READONLY,
+                ),
+                1,
+                wx.EXPAND | wx.ALL,
+                5,
+            )
+            sizer.Add(
+                wx.StaticText(dialog, label="Signal header dump:"),
+                0,
+                wx.LEFT | wx.TOP,
+                5,
+            )
+            sizer.Add(
+                wx.TextCtrl(
+                    dialog,
+                    value=raw_sig_header.decode("utf8", "backslashreplace"),
+                    style=wx.TE_MULTILINE | wx.TE_READONLY,
+                ),
+                1,
+                wx.EXPAND | wx.ALL,
+                5,
+            )
+            dialog.SetSizer(sizer)
             dialog.ShowModal()
-            self.Close()
+            dialog.Destroy()
 
     def _setup(self):
         panel = wx.Panel(self)
@@ -110,7 +161,7 @@ class EditorFrame(wx.Frame):
 
     def open_file_save_dialog(self):
         default_filename = self.input_path.stem + "_anonymized.edf"
-        
+
         dialog = wx.FileDialog(
             self,
             defaultDir=str(self.input_path.parent.absolute()),
