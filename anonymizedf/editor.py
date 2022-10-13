@@ -30,10 +30,9 @@ class EditorFrame(wx.Frame):
         self.parent = parent
         self.input_path = path
         self.Bind(wx.EVT_CLOSE, self.on_close)
-
+ 
     def Open(self):
         if not self._read_edf():
-            self.Close()
             return False
 
         self._setup()

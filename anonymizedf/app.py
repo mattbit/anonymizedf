@@ -109,6 +109,8 @@ class AppFrame(wx.Frame):
         if editor.Open():
             editor.Show()
             self.Hide()
+        else:
+            editor.Close()
 
     def on_child_closed(self):
         children = [c for c in self.GetChildren() if isinstance(c, wx.Frame)]
