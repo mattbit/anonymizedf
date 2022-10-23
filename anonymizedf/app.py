@@ -4,7 +4,10 @@ import wx.grid
 import wx.dataview
 
 from pathlib import Path
-from .editor import EditorFrame
+from anonymizedf.fixer import fix_edf_file
+
+from anonymizedf.model import InvalidFileError
+from .editor import EditorFrame, HeaderDebugFrame
 
 APP_VERSION = "v0.0.1β"
 
@@ -106,16 +109,79 @@ class AppFrame(wx.Frame):
 
     def open_editor(self, filename):
         editor = EditorFrame(self, Path(filename))
-        if editor.Open():
+
+        try:
+            editor.Open()
             editor.Show()
             self.Hide()
-        else:
+            return
+        except InvalidFileError:
             editor.Close()
+            should_fix = self._show_invalid_file_dialog(filename)
+
+        if should_fix:
+            try:
+                fixed_path = fix_edf_file(filename)
+            except RuntimeError:
+                dialog = wx.MessageDialog(
+                    self,
+                    "The file could not be fixed automatically.",
+                    "Could not fix EDF file",
+                    style=wx.CENTRE | wx.OK | wx.ICON_ERROR,
+                )
+                dialog.ShowModal()
+                return
+
+            editor = EditorFrame(self, Path(fixed_path))
+            try:
+                editor.Open()
+                editor.Show()
+                self.Hide()
+                return
+            except InvalidFileError:
+                editor.Close()
+
+                dialog = wx.MessageDialog(
+                    self,
+                    "The file could not be opened.",
+                    "Invalid EDF file",
+                    style=wx.CENTRE | wx.OK | wx.ICON_ERROR,
+                )
+                dialog.ShowModal()
 
     def on_child_closed(self):
         children = [c for c in self.GetChildren() if isinstance(c, wx.Frame)]
         if len(children) <= 1:
+            self.Centre()
             self.Show()
+
+    def _show_invalid_file_dialog(self, file_path):
+        dialog = wx.RichMessageDialog(
+            None,
+            f"The selected file is not EDF(+) compliant.\n\nDo you want to try to fix it automatically?",
+            "Malformed EDF file",
+            style=wx.ICON_ERROR | wx.YES | wx.NO,
+        )
+        dialog.ShowCheckBox("Show debug information")
+        should_fix = dialog.ShowModal() == wx.ID_YES
+
+        show_debug = dialog.IsCheckBoxChecked()
+        dialog.Destroy()
+
+        if show_debug:
+            with open(file_path, "rb") as f:
+                raw_header = f.read(256)
+                raw_sig_header = f.read(256)
+            debug = HeaderDebugFrame(
+                None,
+                title=f"{file_path} — Debug information",
+                raw_header=raw_header,
+                raw_sig_header=raw_sig_header,
+            )
+
+            debug.Show()
+
+        return should_fix
 
 
 class FileDropTarget(wx.FileDropTarget):
