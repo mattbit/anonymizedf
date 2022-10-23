@@ -9,7 +9,7 @@ from anonymizedf.fixer import fix_edf_file
 from anonymizedf.model import InvalidFileError
 from .editor import EditorFrame, HeaderDebugFrame
 
-APP_VERSION = "v0.0.1β"
+APP_VERSION = "v0.1.0β"
 
 
 class App(wx.App):
