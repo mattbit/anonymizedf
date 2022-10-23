@@ -118,7 +118,7 @@ def heuristic_fix_lpi_format(lpi):
     fields = re.split(r" +", lpi)
     guesses = guess_patient_fields(fields)
     best_guesses, extra_fields = process_field_guesses(fields, guesses)
-    print(best_guesses)
+
     # Merge
     compliant_fields = [
         best_guesses.get("code", "X"),
