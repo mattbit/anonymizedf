@@ -101,6 +101,8 @@ class EditorFrame(wx.Frame):
         self.model.update_annotations(self.annots_panel.get_annotation_values())
         self.model.write(filename)
 
+        self.Close()
+
     def open_file_save_dialog(self):
         default_filename = self.input_path.stem + "_anonymized.edf"
 
@@ -121,7 +123,7 @@ class EditorFrame(wx.Frame):
         return filename
 
     def on_cancel(self, event):
-        self.on_close(event)
+        self.Close()
 
     def on_reset(self, event):
         raise NotImplementedError()
